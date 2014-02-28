@@ -60,6 +60,7 @@ import org.hibernate.cache.CacheException;
 import org.hibernate.engine.internal.NonNullableTransientDependencies;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
+import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.Type;
 
 /**
@@ -614,16 +615,17 @@ public class ActionQueue {
 	}
 
 	public void unScheduleDeletion(EntityEntry entry, Object rescuedEntity) {
+		boolean isProxy = rescuedEntity instanceof HibernateProxy;
 		for ( int i = 0; i < deletions.size(); i++ ) {
 			EntityDeleteAction action = deletions.get( i );
-			if ( action.getInstance() == rescuedEntity ) {
+			if ( isProxy ? rescuedEntity != null && rescuedEntity.equals(action.getInstance()) : action.getInstance() == rescuedEntity ) {
 				deletions.remove( i );
 				return;
 			}
 		}
 		for ( int i = 0; i < orphanRemovals.size(); i++ ) {
 			EntityDeleteAction action = orphanRemovals.get( i );
-			if ( action.getInstance() == rescuedEntity ) {
+			if ( isProxy ? rescuedEntity != null && rescuedEntity.equals(action.getInstance()) : action.getInstance() == rescuedEntity ) {
 				orphanRemovals.remove( i );
 				return;
 			}
